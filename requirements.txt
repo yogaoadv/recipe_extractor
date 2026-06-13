@@ -1,0 +1,4 @@
+groq
+instaloader
+python-dotenv
+requests
