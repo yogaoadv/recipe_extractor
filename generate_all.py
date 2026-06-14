@@ -106,11 +106,18 @@ def main():
     pages = fetch_all_recipes()
     print(f"   -> {len(pages)} recipes found\n")
 
+    # snapshot existing recipe pages before regenerating
+    existing_pages = {
+        f for f in os.listdir(out_dir)
+        if f.endswith(".html") and f != "index.html"
+    }
+
     flashcard_tmpl = load_template()
     index_tmpl     = load_index_template()
 
     recipes_meta = []
     seen_slugs   = {}
+    generated    = set()
 
     for idx, page in enumerate(pages, 1):
         meta = get_recipe_meta(page)
@@ -140,6 +147,7 @@ def main():
         with open(os.path.join(out_dir, f"{slug}.html"), "w", encoding="utf-8") as f:
             f.write(html)
 
+        generated.add(f"{slug}.html")
         recipes_meta.append(meta)
 
     print(f"\nGenerating index.html ({len(recipes_meta)} recipes)...")
@@ -150,10 +158,16 @@ def main():
     with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8") as f:
         f.write(index_html)
 
+    stale = existing_pages - generated
+    for f in stale:
+        os.remove(os.path.join(out_dir, f))
+
     print()
     print("=" * 50)
     print(f"OUTPUT:  {os.path.abspath(out_dir)}/")
     print(f"PAGES:   {len(recipes_meta)} recipe pages + index.html")
+    if stale:
+        print(f"REMOVED: {len(stale)} stale page(s): {', '.join(sorted(stale))}")
     print()
     print("Push docs/ to GitHub Pages to deploy.")
 
