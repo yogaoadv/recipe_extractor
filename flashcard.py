@@ -108,9 +108,11 @@ def build_cards(page):
 
     name = get_title(page)
 
+    source_url = props.get("Source URL", {}).get("url", "") or ""
+
     cards = [{"type": "intro", "recipe_name": name,
                "cuisine": sel("Cuisine"), "time": txt("Time to Make"),
-               "difficulty": sel("Difficulty")}]
+               "difficulty": sel("Difficulty"), "source_url": source_url}]
 
     ing_cards = parse_ingredients(txt("Ingredients"))
     if ing_cards:

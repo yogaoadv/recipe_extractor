@@ -146,7 +146,9 @@ function render(){
          ${c.time?`<span class="pill">⏱ ${esc(c.time)}</span>`:''}
          ${c.difficulty?`<span class="pill">${esc(c.difficulty)}</span>`:''}
        </div>
-       <div class="sub">Swipe right or tap Next to start</div>`;
+       <div class="sub">Swipe right or tap Next to start</div>
+       ${c.source_url?`<a href="${esc(c.source_url)}" target="_blank" rel="noopener" style="color:var(--a-intro);font-size:13px;opacity:.7;text-decoration:none">▶ Watch video</a>`:''}
+`;
   } else if(c.type==='ingredients_all'){
     const groups={};
     c.items.forEach(it=>{
