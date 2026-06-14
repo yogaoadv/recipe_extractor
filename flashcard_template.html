@@ -49,11 +49,11 @@ html,body{height:100%;background:var(--bg);overflow:hidden;
   transition:transform .12s ease;
   touch-action:none;
 }
-.card.intro   {background:var(--c-intro)}
-.card.section {background:var(--c-section);justify-content:flex-end;padding-bottom:36px}
-.card.ingredient{background:var(--c-ing)}
-.card.step    {background:var(--c-step)}
-.card.done    {background:var(--c-done);align-items:center;text-align:center}
+.card.intro            {background:var(--c-intro)}
+.card.section          {background:var(--c-section);justify-content:flex-end;padding-bottom:36px}
+.card.ingredients_all  {background:var(--c-ing);justify-content:flex-start;overflow-y:auto;padding-top:28px}
+.card.step             {background:var(--c-step)}
+.card.done             {background:var(--c-done);align-items:center;text-align:center}
 
 /* typography */
 .badge{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;opacity:.65}
@@ -118,7 +118,8 @@ const bb=document.getElementById('bb');
 const bn=document.getElementById('bn');
 
 const ACCENT={intro:'var(--a-intro)',section:'var(--a-section)',
-  ingredient:'var(--a-ing)',step:'var(--a-step)',done:'var(--a-done)'};
+  ingredients_all:'var(--a-ing)',ingredient:'var(--a-ing)',
+  step:'var(--a-step)',done:'var(--a-done)'};
 
 function esc(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -146,6 +147,16 @@ function render(){
          ${c.difficulty?`<span class="pill">${esc(c.difficulty)}</span>`:''}
        </div>
        <div class="sub">Swipe right or tap Next to start</div>`;
+  } else if(c.type==='ingredients_all'){
+    const groups={};
+    c.items.forEach(it=>{
+      (groups[it.group]=groups[it.group]||[]).push(it.text);
+    });
+    const rows=Object.entries(groups).map(([g,items])=>`
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.8px;color:var(--a-ing);opacity:.8;margin-top:14px;margin-bottom:6px">${esc(g)}</div>
+      ${items.map(t=>`<div style="font-size:17px;font-weight:500;color:var(--text);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">${esc(t)}</div>`).join('')}
+    `).join('');
+    h=`<div style="font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;opacity:.65;color:var(--a-ing)">Ingredients</div>${rows}`;
   } else if(c.type==='section'){
     h=`<div class="section-count">${esc(c.count)}</div>
        <div class="section-label">${esc(c.label)}</div>`;

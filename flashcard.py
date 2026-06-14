@@ -114,8 +114,10 @@ def build_cards(page):
 
     ing_cards = parse_ingredients(txt("Ingredients"))
     if ing_cards:
-        cards.append({"type": "section", "label": "INGREDIENTS", "count": len(ing_cards)})
-        cards.extend(ing_cards)
+        cards.append({
+            "type":  "ingredients_all",
+            "items": [{"group": c["group"], "text": c["text"]} for c in ing_cards],
+        })
 
     step_cards = parse_steps(txt("Process"))
     if step_cards:

@@ -49,11 +49,11 @@ html,body{height:100%;background:var(--bg);overflow:hidden;
   transition:transform .12s ease;
   touch-action:none;
 }
-.card.intro   {background:var(--c-intro)}
-.card.section {background:var(--c-section);justify-content:flex-end;padding-bottom:36px}
-.card.ingredient{background:var(--c-ing)}
-.card.step    {background:var(--c-step)}
-.card.done    {background:var(--c-done);align-items:center;text-align:center}
+.card.intro            {background:var(--c-intro)}
+.card.section          {background:var(--c-section);justify-content:flex-end;padding-bottom:36px}
+.card.ingredients_all  {background:var(--c-ing);justify-content:flex-start;overflow-y:auto;padding-top:28px}
+.card.step             {background:var(--c-step)}
+.card.done             {background:var(--c-done);align-items:center;text-align:center}
 
 /* typography */
 .badge{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;opacity:.65}
@@ -91,7 +91,7 @@ html,body{height:100%;background:var(--bg);overflow:hidden;
 <div id="app">
   <div id="prog-row">
     <div id="prog-bar"><div id="prog-fill"></div></div>
-    <div id="prog-lbl">1 / 29</div>
+    <div id="prog-lbl">1 / 14</div>
   </div>
   <div id="stage">
     <div class="card" id="card">
@@ -106,7 +106,7 @@ html,body{height:100%;background:var(--bg);overflow:hidden;
   </div>
 </div>
 <script>
-const C=[{"type": "intro", "recipe_name": "Rava Upma", "cuisine": "Indian", "time": "20 mins", "difficulty": "Easy"}, {"type": "section", "label": "INGREDIENTS", "count": 15}, {"type": "ingredient", "group": "INGREDIENTS", "text": "SEMOLINA (RAVA)"}, {"type": "ingredient", "group": "INGREDIENTS", "text": "1 cup rava (coarse semolina)"}, {"type": "ingredient", "group": "FAT & TEMPERING", "text": "2 tbsp oil or ghee"}, {"type": "ingredient", "group": "FAT & TEMPERING", "text": "1 tsp mustard seeds"}, {"type": "ingredient", "group": "FAT & TEMPERING", "text": "1 tsp chana dal"}, {"type": "ingredient", "group": "FAT & TEMPERING", "text": "1 tsp urad dal"}, {"type": "ingredient", "group": "FAT & TEMPERING", "text": "8–10 curry leaves"}, {"type": "ingredient", "group": "FAT & TEMPERING", "text": "2 dried red chillies"}, {"type": "ingredient", "group": "VEGETABLES & FLAVOUR", "text": "1 medium onion — finely chopped"}, {"type": "ingredient", "group": "VEGETABLES & FLAVOUR", "text": "1–2 green chillies — slit"}, {"type": "ingredient", "group": "VEGETABLES & FLAVOUR", "text": "1 tsp grated ginger (optional)"}, {"type": "ingredient", "group": "VEGETABLES & FLAVOUR", "text": "Salt to taste"}, {"type": "ingredient", "group": "LIQUID", "text": "2.5 cups water (2.5x the rava quantity)"}, {"type": "ingredient", "group": "FINISH", "text": "1 tsp lemon juice"}, {"type": "ingredient", "group": "FINISH", "text": "Fresh coriander — chopped"}, {"type": "section", "label": "METHOD", "count": 10}, {"type": "step", "step": 1, "text": "Dry roast rava on low flame for 3–4 mins until slightly golden and aromatic. Set aside."}, {"type": "step", "step": 2, "text": "Heat oil in same pan. Add mustard seeds — wait for splutter."}, {"type": "step", "step": 3, "text": "Add chana dal + urad dal. Fry until golden."}, {"type": "step", "step": 4, "text": "Add curry leaves, red chillies. Fry 30 seconds."}, {"type": "step", "step": 5, "text": "Add onion + green chillies. Cook until onion turns soft and translucent."}, {"type": "step", "step": 6, "text": "Add ginger if using. Cook 1 min."}, {"type": "step", "step": 7, "text": "Pour in water + salt. Bring to full boil."}, {"type": "step", "step": 8, "text": "Lower flame. Slowly pour rava while stirring continuously — no lumps."}, {"type": "step", "step": 9, "text": "Cover and cook 2–3 mins on low. Stir once in between."}, {"type": "step", "step": 10, "text": "Switch off. Add lemon juice + coriander. Mix and serve hot."}, {"type": "done", "recipe_name": "Rava Upma"}];
+const C=[{"type": "intro", "recipe_name": "Rava Upma", "cuisine": "Indian", "time": "20 mins", "difficulty": "Easy"}, {"type": "ingredients_all", "items": [{"group": "INGREDIENTS", "text": "SEMOLINA (RAVA)"}, {"group": "INGREDIENTS", "text": "1 cup rava (coarse semolina)"}, {"group": "FAT & TEMPERING", "text": "2 tbsp oil or ghee"}, {"group": "FAT & TEMPERING", "text": "1 tsp mustard seeds"}, {"group": "FAT & TEMPERING", "text": "1 tsp chana dal"}, {"group": "FAT & TEMPERING", "text": "1 tsp urad dal"}, {"group": "FAT & TEMPERING", "text": "8–10 curry leaves"}, {"group": "FAT & TEMPERING", "text": "2 dried red chillies"}, {"group": "VEGETABLES & FLAVOUR", "text": "1 medium onion — finely chopped"}, {"group": "VEGETABLES & FLAVOUR", "text": "1–2 green chillies — slit"}, {"group": "VEGETABLES & FLAVOUR", "text": "1 tsp grated ginger (optional)"}, {"group": "VEGETABLES & FLAVOUR", "text": "Salt to taste"}, {"group": "LIQUID", "text": "2.5 cups water (2.5x the rava quantity)"}, {"group": "FINISH", "text": "1 tsp lemon juice"}, {"group": "FINISH", "text": "Fresh coriander — chopped"}]}, {"type": "section", "label": "METHOD", "count": 10}, {"type": "step", "step": 1, "text": "Dry roast rava on low flame for 3–4 mins until slightly golden and aromatic. Set aside."}, {"type": "step", "step": 2, "text": "Heat oil in same pan. Add mustard seeds — wait for splutter."}, {"type": "step", "step": 3, "text": "Add chana dal + urad dal. Fry until golden."}, {"type": "step", "step": 4, "text": "Add curry leaves, red chillies. Fry 30 seconds."}, {"type": "step", "step": 5, "text": "Add onion + green chillies. Cook until onion turns soft and translucent."}, {"type": "step", "step": 6, "text": "Add ginger if using. Cook 1 min."}, {"type": "step", "step": 7, "text": "Pour in water + salt. Bring to full boil."}, {"type": "step", "step": 8, "text": "Lower flame. Slowly pour rava while stirring continuously — no lumps."}, {"type": "step", "step": 9, "text": "Cover and cook 2–3 mins on low. Stir once in between."}, {"type": "step", "step": 10, "text": "Switch off. Add lemon juice + coriander. Mix and serve hot."}, {"type": "done", "recipe_name": "Rava Upma"}];
 let i=0;
 const card=document.getElementById('card');
 const cc=document.getElementById('cc');
@@ -118,7 +118,8 @@ const bb=document.getElementById('bb');
 const bn=document.getElementById('bn');
 
 const ACCENT={intro:'var(--a-intro)',section:'var(--a-section)',
-  ingredient:'var(--a-ing)',step:'var(--a-step)',done:'var(--a-done)'};
+  ingredients_all:'var(--a-ing)',ingredient:'var(--a-ing)',
+  step:'var(--a-step)',done:'var(--a-done)'};
 
 function esc(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -146,6 +147,16 @@ function render(){
          ${c.difficulty?`<span class="pill">${esc(c.difficulty)}</span>`:''}
        </div>
        <div class="sub">Swipe right or tap Next to start</div>`;
+  } else if(c.type==='ingredients_all'){
+    const groups={};
+    c.items.forEach(it=>{
+      (groups[it.group]=groups[it.group]||[]).push(it.text);
+    });
+    const rows=Object.entries(groups).map(([g,items])=>`
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.8px;color:var(--a-ing);opacity:.8;margin-top:14px;margin-bottom:6px">${esc(g)}</div>
+      ${items.map(t=>`<div style="font-size:17px;font-weight:500;color:var(--text);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">${esc(t)}</div>`).join('')}
+    `).join('');
+    h=`<div style="font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;opacity:.65;color:var(--a-ing)">Ingredients</div>${rows}`;
   } else if(c.type==='section'){
     h=`<div class="section-count">${esc(c.count)}</div>
        <div class="section-label">${esc(c.label)}</div>`;

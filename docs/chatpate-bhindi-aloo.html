@@ -49,11 +49,11 @@ html,body{height:100%;background:var(--bg);overflow:hidden;
   transition:transform .12s ease;
   touch-action:none;
 }
-.card.intro   {background:var(--c-intro)}
-.card.section {background:var(--c-section);justify-content:flex-end;padding-bottom:36px}
-.card.ingredient{background:var(--c-ing)}
-.card.step    {background:var(--c-step)}
-.card.done    {background:var(--c-done);align-items:center;text-align:center}
+.card.intro            {background:var(--c-intro)}
+.card.section          {background:var(--c-section);justify-content:flex-end;padding-bottom:36px}
+.card.ingredients_all  {background:var(--c-ing);justify-content:flex-start;overflow-y:auto;padding-top:28px}
+.card.step             {background:var(--c-step)}
+.card.done             {background:var(--c-done);align-items:center;text-align:center}
 
 /* typography */
 .badge{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;opacity:.65}
@@ -91,7 +91,7 @@ html,body{height:100%;background:var(--bg);overflow:hidden;
 <div id="app">
   <div id="prog-row">
     <div id="prog-bar"><div id="prog-fill"></div></div>
-    <div id="prog-lbl">1 / 29</div>
+    <div id="prog-lbl">1 / 13</div>
   </div>
   <div id="stage">
     <div class="card" id="card">
@@ -106,7 +106,7 @@ html,body{height:100%;background:var(--bg);overflow:hidden;
   </div>
 </div>
 <script>
-const C=[{"type": "intro", "recipe_name": "Chatpate Bhindi Aloo", "cuisine": "Indian", "time": "25-35 minutes", "difficulty": "Easy"}, {"type": "section", "label": "INGREDIENTS", "count": 16}, {"type": "ingredient", "group": "BASE", "text": "250 grams Lady Finger"}, {"type": "ingredient", "group": "BASE", "text": "1 Potato"}, {"type": "ingredient", "group": "BASE", "text": "2 small Onion"}, {"type": "ingredient", "group": "TEMPEING", "text": "2 tbsp Mustard Oil"}, {"type": "ingredient", "group": "TEMPEING", "text": "½ tsp Cumin Seeds"}, {"type": "ingredient", "group": "TEMPEING", "text": "1 tbsp Garlic"}, {"type": "ingredient", "group": "TEMPEING", "text": "2 Green Chilli"}, {"type": "ingredient", "group": "SAUCE", "text": "¼ tsp Turmeric Powder"}, {"type": "ingredient", "group": "SAUCE", "text": "1 tsp Coriander Powder"}, {"type": "ingredient", "group": "SAUCE", "text": "½ tsp Kashmiri Red Chilli Powder"}, {"type": "ingredient", "group": "SAUCE", "text": "1 tsp Cumin Powder"}, {"type": "ingredient", "group": "SAUCE", "text": "1 tsp Dry Mango Powder"}, {"type": "ingredient", "group": "SAUCE", "text": "1 tsp Kasuri Methi"}, {"type": "ingredient", "group": "FINISH", "text": "to taste Salt"}, {"type": "ingredient", "group": "FINISH", "text": "a pinch Garam Masala"}, {"type": "ingredient", "group": "FINISH", "text": "a handful Fresh Coriander"}, {"type": "section", "label": "METHOD", "count": 9}, {"type": "step", "step": 1, "text": "Wash and dry the lady fingers, then cut them into thick dices."}, {"type": "step", "step": 2, "text": "Cut the potato into same sized dices and place them in water."}, {"type": "step", "step": 3, "text": "Cut the onions into thick slices."}, {"type": "step", "step": 4, "text": "Heat oil in a kadhai, add cumin seeds, garlic, green chillies, and asafoetida."}, {"type": "step", "step": 5, "text": "Add the onions and cook until translucent."}, {"type": "step", "step": 6, "text": "Add the potatoes and cook for 2-3 minutes, then cover and cook for 4-5 minutes."}, {"type": "step", "step": 7, "text": "Add the powdered spices, kasuri methi, and cook for 1-1.5 minutes."}, {"type": "step", "step": 8, "text": "Add the lady fingers, stir well, and cover and cook until the lady fingers are cooked."}, {"type": "step", "step": 9, "text": "Taste and adjust the salt, add garam masala and fresh coriander."}, {"type": "done", "recipe_name": "Chatpate Bhindi Aloo"}];
+const C=[{"type": "intro", "recipe_name": "Chatpate Bhindi Aloo", "cuisine": "Indian", "time": "25-35 minutes", "difficulty": "Easy"}, {"type": "ingredients_all", "items": [{"group": "BASE", "text": "250 grams Lady Finger"}, {"group": "BASE", "text": "1 Potato"}, {"group": "BASE", "text": "2 small Onion"}, {"group": "TEMPEING", "text": "2 tbsp Mustard Oil"}, {"group": "TEMPEING", "text": "½ tsp Cumin Seeds"}, {"group": "TEMPEING", "text": "1 tbsp Garlic"}, {"group": "TEMPEING", "text": "2 Green Chilli"}, {"group": "SAUCE", "text": "¼ tsp Turmeric Powder"}, {"group": "SAUCE", "text": "1 tsp Coriander Powder"}, {"group": "SAUCE", "text": "½ tsp Kashmiri Red Chilli Powder"}, {"group": "SAUCE", "text": "1 tsp Cumin Powder"}, {"group": "SAUCE", "text": "1 tsp Dry Mango Powder"}, {"group": "SAUCE", "text": "1 tsp Kasuri Methi"}, {"group": "FINISH", "text": "to taste Salt"}, {"group": "FINISH", "text": "a pinch Garam Masala"}, {"group": "FINISH", "text": "a handful Fresh Coriander"}]}, {"type": "section", "label": "METHOD", "count": 9}, {"type": "step", "step": 1, "text": "Wash and dry the lady fingers, then cut them into thick dices."}, {"type": "step", "step": 2, "text": "Cut the potato into same sized dices and place them in water."}, {"type": "step", "step": 3, "text": "Cut the onions into thick slices."}, {"type": "step", "step": 4, "text": "Heat oil in a kadhai, add cumin seeds, garlic, green chillies, and asafoetida."}, {"type": "step", "step": 5, "text": "Add the onions and cook until translucent."}, {"type": "step", "step": 6, "text": "Add the potatoes and cook for 2-3 minutes, then cover and cook for 4-5 minutes."}, {"type": "step", "step": 7, "text": "Add the powdered spices, kasuri methi, and cook for 1-1.5 minutes."}, {"type": "step", "step": 8, "text": "Add the lady fingers, stir well, and cover and cook until the lady fingers are cooked."}, {"type": "step", "step": 9, "text": "Taste and adjust the salt, add garam masala and fresh coriander."}, {"type": "done", "recipe_name": "Chatpate Bhindi Aloo"}];
 let i=0;
 const card=document.getElementById('card');
 const cc=document.getElementById('cc');
@@ -118,7 +118,8 @@ const bb=document.getElementById('bb');
 const bn=document.getElementById('bn');
 
 const ACCENT={intro:'var(--a-intro)',section:'var(--a-section)',
-  ingredient:'var(--a-ing)',step:'var(--a-step)',done:'var(--a-done)'};
+  ingredients_all:'var(--a-ing)',ingredient:'var(--a-ing)',
+  step:'var(--a-step)',done:'var(--a-done)'};
 
 function esc(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -146,6 +147,16 @@ function render(){
          ${c.difficulty?`<span class="pill">${esc(c.difficulty)}</span>`:''}
        </div>
        <div class="sub">Swipe right or tap Next to start</div>`;
+  } else if(c.type==='ingredients_all'){
+    const groups={};
+    c.items.forEach(it=>{
+      (groups[it.group]=groups[it.group]||[]).push(it.text);
+    });
+    const rows=Object.entries(groups).map(([g,items])=>`
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.8px;color:var(--a-ing);opacity:.8;margin-top:14px;margin-bottom:6px">${esc(g)}</div>
+      ${items.map(t=>`<div style="font-size:17px;font-weight:500;color:var(--text);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">${esc(t)}</div>`).join('')}
+    `).join('');
+    h=`<div style="font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;opacity:.65;color:var(--a-ing)">Ingredients</div>${rows}`;
   } else if(c.type==='section'){
     h=`<div class="section-count">${esc(c.count)}</div>
        <div class="section-label">${esc(c.label)}</div>`;

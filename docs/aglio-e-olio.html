@@ -49,11 +49,11 @@ html,body{height:100%;background:var(--bg);overflow:hidden;
   transition:transform .12s ease;
   touch-action:none;
 }
-.card.intro   {background:var(--c-intro)}
-.card.section {background:var(--c-section);justify-content:flex-end;padding-bottom:36px}
-.card.ingredient{background:var(--c-ing)}
-.card.step    {background:var(--c-step)}
-.card.done    {background:var(--c-done);align-items:center;text-align:center}
+.card.intro            {background:var(--c-intro)}
+.card.section          {background:var(--c-section);justify-content:flex-end;padding-bottom:36px}
+.card.ingredients_all  {background:var(--c-ing);justify-content:flex-start;overflow-y:auto;padding-top:28px}
+.card.step             {background:var(--c-step)}
+.card.done             {background:var(--c-done);align-items:center;text-align:center}
 
 /* typography */
 .badge{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;opacity:.65}
@@ -91,7 +91,7 @@ html,body{height:100%;background:var(--bg);overflow:hidden;
 <div id="app">
   <div id="prog-row">
     <div id="prog-bar"><div id="prog-fill"></div></div>
-    <div id="prog-lbl">1 / 22</div>
+    <div id="prog-lbl">1 / 13</div>
   </div>
   <div id="stage">
     <div class="card" id="card">
@@ -106,7 +106,7 @@ html,body{height:100%;background:var(--bg);overflow:hidden;
   </div>
 </div>
 <script>
-const C=[{"type": "intro", "recipe_name": "Aglio e Olio", "cuisine": "Italian", "time": "25 mins", "difficulty": "Easy"}, {"type": "section", "label": "INGREDIENTS", "count": 9}, {"type": "ingredient", "group": "PASTA", "text": "200g spaghetti (or linguine)"}, {"type": "ingredient", "group": "PASTA", "text": "Pasta water — reserve 1 cup before draining"}, {"type": "ingredient", "group": "FAT & FLAVOUR BASE", "text": "5–6 garlic cloves — thinly sliced (not minced)"}, {"type": "ingredient", "group": "FAT & FLAVOUR BASE", "text": "4 tbsp good olive oil (extra virgin)"}, {"type": "ingredient", "group": "FAT & FLAVOUR BASE", "text": "1 tsp red chilli flakes (adjust to taste)"}, {"type": "ingredient", "group": "SEASONING & FINISH", "text": "Salt — for pasta water (generous, tastes like sea water)"}, {"type": "ingredient", "group": "SEASONING & FINISH", "text": "Black pepper — freshly cracked"}, {"type": "ingredient", "group": "SEASONING & FINISH", "text": "Fresh parsley — handful, roughly chopped"}, {"type": "ingredient", "group": "SEASONING & FINISH", "text": "Parmesan — grated (optional but good)"}, {"type": "section", "label": "METHOD", "count": 9}, {"type": "step", "step": 1, "text": "Boil water in large pot. Add generous salt. Cook spaghetti as per pack (usually 8–10 mins)."}, {"type": "step", "step": 2, "text": "IMPORTANT: Before draining, scoop out 1 cup pasta water and keep aside."}, {"type": "step", "step": 3, "text": "While pasta cooks — heat olive oil in wide pan on LOW flame."}, {"type": "step", "step": 4, "text": "Add sliced garlic. Cook slowly until golden (not brown — bitter if burnt). 3–4 mins."}, {"type": "step", "step": 5, "text": "Add chilli flakes. Stir 30 seconds."}, {"type": "step", "step": 6, "text": "Add drained pasta directly into pan."}, {"type": "step", "step": 7, "text": "Add 3–4 tbsp pasta water. Toss everything together — the starchy water creates a light sauce."}, {"type": "step", "step": 8, "text": "Add parsley. Season with salt + black pepper."}, {"type": "step", "step": 9, "text": "Serve immediately with parmesan on top."}, {"type": "done", "recipe_name": "Aglio e Olio"}];
+const C=[{"type": "intro", "recipe_name": "Aglio e Olio", "cuisine": "Italian", "time": "25 mins", "difficulty": "Easy"}, {"type": "ingredients_all", "items": [{"group": "PASTA", "text": "200g spaghetti (or linguine)"}, {"group": "PASTA", "text": "Pasta water — reserve 1 cup before draining"}, {"group": "FAT & FLAVOUR BASE", "text": "5–6 garlic cloves — thinly sliced (not minced)"}, {"group": "FAT & FLAVOUR BASE", "text": "4 tbsp good olive oil (extra virgin)"}, {"group": "FAT & FLAVOUR BASE", "text": "1 tsp red chilli flakes (adjust to taste)"}, {"group": "SEASONING & FINISH", "text": "Salt — for pasta water (generous, tastes like sea water)"}, {"group": "SEASONING & FINISH", "text": "Black pepper — freshly cracked"}, {"group": "SEASONING & FINISH", "text": "Fresh parsley — handful, roughly chopped"}, {"group": "SEASONING & FINISH", "text": "Parmesan — grated (optional but good)"}]}, {"type": "section", "label": "METHOD", "count": 9}, {"type": "step", "step": 1, "text": "Boil water in large pot. Add generous salt. Cook spaghetti as per pack (usually 8–10 mins)."}, {"type": "step", "step": 2, "text": "IMPORTANT: Before draining, scoop out 1 cup pasta water and keep aside."}, {"type": "step", "step": 3, "text": "While pasta cooks — heat olive oil in wide pan on LOW flame."}, {"type": "step", "step": 4, "text": "Add sliced garlic. Cook slowly until golden (not brown — bitter if burnt). 3–4 mins."}, {"type": "step", "step": 5, "text": "Add chilli flakes. Stir 30 seconds."}, {"type": "step", "step": 6, "text": "Add drained pasta directly into pan."}, {"type": "step", "step": 7, "text": "Add 3–4 tbsp pasta water. Toss everything together — the starchy water creates a light sauce."}, {"type": "step", "step": 8, "text": "Add parsley. Season with salt + black pepper."}, {"type": "step", "step": 9, "text": "Serve immediately with parmesan on top."}, {"type": "done", "recipe_name": "Aglio e Olio"}];
 let i=0;
 const card=document.getElementById('card');
 const cc=document.getElementById('cc');
@@ -118,7 +118,8 @@ const bb=document.getElementById('bb');
 const bn=document.getElementById('bn');
 
 const ACCENT={intro:'var(--a-intro)',section:'var(--a-section)',
-  ingredient:'var(--a-ing)',step:'var(--a-step)',done:'var(--a-done)'};
+  ingredients_all:'var(--a-ing)',ingredient:'var(--a-ing)',
+  step:'var(--a-step)',done:'var(--a-done)'};
 
 function esc(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -146,6 +147,16 @@ function render(){
          ${c.difficulty?`<span class="pill">${esc(c.difficulty)}</span>`:''}
        </div>
        <div class="sub">Swipe right or tap Next to start</div>`;
+  } else if(c.type==='ingredients_all'){
+    const groups={};
+    c.items.forEach(it=>{
+      (groups[it.group]=groups[it.group]||[]).push(it.text);
+    });
+    const rows=Object.entries(groups).map(([g,items])=>`
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.8px;color:var(--a-ing);opacity:.8;margin-top:14px;margin-bottom:6px">${esc(g)}</div>
+      ${items.map(t=>`<div style="font-size:17px;font-weight:500;color:var(--text);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">${esc(t)}</div>`).join('')}
+    `).join('');
+    h=`<div style="font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;opacity:.65;color:var(--a-ing)">Ingredients</div>${rows}`;
   } else if(c.type==='section'){
     h=`<div class="section-count">${esc(c.count)}</div>
        <div class="section-label">${esc(c.label)}</div>`;
