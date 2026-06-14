@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f0f0f">
+<title>Rava Upma</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f0f0f;
+  --c-intro:#1a1a2e;   --a-intro:#ff9800;
+  --c-section:#111;    --a-section:#555;
+  --c-ing:#0d1f0d;     --a-ing:#4caf50;
+  --c-step:#0d1220;    --a-step:#42a5f5;
+  --c-done:#1a0d2e;    --a-done:#ce93d8;
+  --text:#f0f0f0;      --muted:#777;
+  --prog-bg:#1e1e1e;
+  --radius:22px;
+}
+html,body{height:100%;background:var(--bg);overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+
+#app{
+  height:100vh;height:100dvh;
+  display:flex;flex-direction:column;
+  padding:max(env(safe-area-inset-top),14px) 16px max(env(safe-area-inset-bottom),16px);
+  gap:10px;
+}
+
+/* progress */
+#prog-row{display:flex;align-items:center;gap:10px;flex-shrink:0}
+#prog-bar{flex:1;height:4px;background:var(--prog-bg);border-radius:2px;overflow:hidden}
+#prog-fill{height:100%;border-radius:2px;transition:width .35s ease,background .35s ease;width:0%}
+#prog-lbl{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* card stage */
+#stage{flex:1;position:relative;min-height:0;overflow:hidden}
+
+.card{
+  position:absolute;inset:0;
+  border-radius:var(--radius);
+  padding:32px 26px;
+  display:flex;flex-direction:column;justify-content:center;gap:18px;
+  overflow:hidden;
+  will-change:transform;
+  transition:transform .12s ease;
+  touch-action:none;
+}
+.card.intro   {background:var(--c-intro)}
+.card.section {background:var(--c-section);justify-content:flex-end;padding-bottom:36px}
+.card.ingredient{background:var(--c-ing)}
+.card.step    {background:var(--c-step)}
+.card.done    {background:var(--c-done);align-items:center;text-align:center}
+
+/* typography */
+.badge{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;opacity:.65}
+.group{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase}
+.main{color:var(--text);font-size:clamp(22px,6vw,32px);font-weight:600;line-height:1.35}
+.sub {color:var(--muted);font-size:14px;line-height:1.6}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{background:rgba(255,255,255,.07);border-radius:20px;padding:5px 14px;font-size:13px;color:var(--text)}
+.step-num{font-size:72px;font-weight:800;line-height:1;opacity:.18}
+.done-icon{font-size:72px}
+.section-label{color:var(--text);font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.4}
+.section-count{color:var(--text);font-size:clamp(42px,11vw,64px);font-weight:800;line-height:1;opacity:.15}
+
+/* swipe overlays */
+.hint{
+  position:absolute;top:50%;transform:translateY(-50%);
+  font-size:52px;font-weight:900;opacity:0;pointer-events:none;
+  border-radius:14px;padding:6px 14px;transition:opacity .08s;
+}
+.hint.l{left:18px;color:#ef5350}
+.hint.r{right:18px;color:#66bb6a}
+
+/* nav buttons */
+#nav{display:flex;gap:10px;flex-shrink:0}
+.btn{flex:1;height:54px;border:none;border-radius:16px;
+  font-size:16px;font-weight:700;cursor:pointer;
+  transition:transform .1s,opacity .1s}
+.btn:active{transform:scale(.96)}
+.btn.back{background:#1a1a1a;color:var(--muted)}
+.btn.next{background:#4caf50;color:#fff}
+.btn:disabled{opacity:.3;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="prog-row">
+    <div id="prog-bar"><div id="prog-fill"></div></div>
+    <div id="prog-lbl">1 / 29</div>
+  </div>
+  <div id="stage">
+    <div class="card" id="card">
+      <div id="cc"></div>
+      <div class="hint l" id="hl">&#8617;</div>
+      <div class="hint r" id="hr">&#10003;</div>
+    </div>
+  </div>
+  <div id="nav">
+    <button class="btn back" id="bb">&#8592; Back</button>
+    <button class="btn next" id="bn">Next &#8594;</button>
+  </div>
+</div>
+<script>
+const C=[{"type": "intro", "recipe_name": "Rava Upma", "cuisine": "Indian", "time": "20 mins", "difficulty": "Easy"}, {"type": "section", "label": "INGREDIENTS", "count": 15}, {"type": "ingredient", "group": "INGREDIENTS", "text": "SEMOLINA (RAVA)"}, {"type": "ingredient", "group": "INGREDIENTS", "text": "1 cup rava (coarse semolina)"}, {"type": "ingredient", "group": "FAT & TEMPERING", "text": "2 tbsp oil or ghee"}, {"type": "ingredient", "group": "FAT & TEMPERING", "text": "1 tsp mustard seeds"}, {"type": "ingredient", "group": "FAT & TEMPERING", "text": "1 tsp chana dal"}, {"type": "ingredient", "group": "FAT & TEMPERING", "text": "1 tsp urad dal"}, {"type": "ingredient", "group": "FAT & TEMPERING", "text": "8–10 curry leaves"}, {"type": "ingredient", "group": "FAT & TEMPERING", "text": "2 dried red chillies"}, {"type": "ingredient", "group": "VEGETABLES & FLAVOUR", "text": "1 medium onion — finely chopped"}, {"type": "ingredient", "group": "VEGETABLES & FLAVOUR", "text": "1–2 green chillies — slit"}, {"type": "ingredient", "group": "VEGETABLES & FLAVOUR", "text": "1 tsp grated ginger (optional)"}, {"type": "ingredient", "group": "VEGETABLES & FLAVOUR", "text": "Salt to taste"}, {"type": "ingredient", "group": "LIQUID", "text": "2.5 cups water (2.5x the rava quantity)"}, {"type": "ingredient", "group": "FINISH", "text": "1 tsp lemon juice"}, {"type": "ingredient", "group": "FINISH", "text": "Fresh coriander — chopped"}, {"type": "section", "label": "METHOD", "count": 10}, {"type": "step", "step": 1, "text": "Dry roast rava on low flame for 3–4 mins until slightly golden and aromatic. Set aside."}, {"type": "step", "step": 2, "text": "Heat oil in same pan. Add mustard seeds — wait for splutter."}, {"type": "step", "step": 3, "text": "Add chana dal + urad dal. Fry until golden."}, {"type": "step", "step": 4, "text": "Add curry leaves, red chillies. Fry 30 seconds."}, {"type": "step", "step": 5, "text": "Add onion + green chillies. Cook until onion turns soft and translucent."}, {"type": "step", "step": 6, "text": "Add ginger if using. Cook 1 min."}, {"type": "step", "step": 7, "text": "Pour in water + salt. Bring to full boil."}, {"type": "step", "step": 8, "text": "Lower flame. Slowly pour rava while stirring continuously — no lumps."}, {"type": "step", "step": 9, "text": "Cover and cook 2–3 mins on low. Stir once in between."}, {"type": "step", "step": 10, "text": "Switch off. Add lemon juice + coriander. Mix and serve hot."}, {"type": "done", "recipe_name": "Rava Upma"}];
+let i=0;
+const card=document.getElementById('card');
+const cc=document.getElementById('cc');
+const fill=document.getElementById('prog-fill');
+const lbl=document.getElementById('prog-lbl');
+const hl=document.getElementById('hl');
+const hr=document.getElementById('hr');
+const bb=document.getElementById('bb');
+const bn=document.getElementById('bn');
+
+const ACCENT={intro:'var(--a-intro)',section:'var(--a-section)',
+  ingredient:'var(--a-ing)',step:'var(--a-step)',done:'var(--a-done)'};
+
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function render(){
+  const c=C[i];
+  const ac=ACCENT[c.type]||'#fff';
+  fill.style.width=((i+1)/C.length*100)+'%';
+  fill.style.background=ac;
+  lbl.textContent=(i+1)+' / '+C.length;
+  card.className='card '+c.type;
+  card.style.transform='';
+  hl.style.opacity=0; hr.style.opacity=0;
+  bb.disabled=(i===0);
+  bn.textContent=i===C.length-1?'Done ✔':'Next →';
+
+  let h='';
+  if(c.type==='intro'){
+    h=`<div class="badge" style="color:${ac}">Recipe</div>
+       <div class="main">${esc(c.recipe_name)}</div>
+       <div class="pills">
+         ${c.cuisine?`<span class="pill">${esc(c.cuisine)}</span>`:''}
+         ${c.time?`<span class="pill">⏱ ${esc(c.time)}</span>`:''}
+         ${c.difficulty?`<span class="pill">${esc(c.difficulty)}</span>`:''}
+       </div>
+       <div class="sub">Swipe right or tap Next to start</div>`;
+  } else if(c.type==='section'){
+    h=`<div class="section-count">${esc(c.count)}</div>
+       <div class="section-label">${esc(c.label)}</div>`;
+  } else if(c.type==='ingredient'){
+    h=`<div class="group" style="color:${ac}">${esc(c.group)}</div>
+       <div class="main">${esc(c.text)}</div>`;
+  } else if(c.type==='step'){
+    h=`<div class="step-num" style="color:${ac}">${esc(c.step)}</div>
+       <div class="main">${esc(c.text)}</div>`;
+  } else if(c.type==='done'){
+    h=`<div class="done-icon">🎉</div>
+       <div class="main">${esc(c.recipe_name)}</div>
+       <div class="sub">Enjoy your meal!</div>`;
+  }
+  cc.innerHTML=h;
+}
+
+function go(dir){
+  const n=i+dir;
+  if(n<0||n>=C.length) return;
+  i=n; render();
+}
+
+bn.addEventListener('click',()=>go(1));
+bb.addEventListener('click',()=>go(-1));
+
+// swipe
+let sx,sy,dragging=false;
+card.addEventListener('touchstart',e=>{
+  sx=e.touches[0].clientX; sy=e.touches[0].clientY; dragging=true;
+},{passive:true});
+card.addEventListener('touchmove',e=>{
+  if(!dragging) return;
+  const dx=e.touches[0].clientX-sx;
+  const dy=e.touches[0].clientY-sy;
+  if(Math.abs(dy)>Math.abs(dx)*1.4){dragging=false;return;}
+  e.preventDefault();
+  const rot=dx/18;
+  card.style.transition='none';
+  card.style.transform=`translateX(${dx}px) rotate(${rot}deg)`;
+  const r=Math.min(Math.abs(dx)/100,1);
+  hr.style.opacity=dx>0?r:0;
+  hl.style.opacity=dx<0?r:0;
+},{passive:false});
+card.addEventListener('touchend',e=>{
+  if(!dragging) return;
+  dragging=false;
+  card.style.transition='';
+  const dx=e.changedTouches[0].clientX-sx;
+  if(dx>80) go(1);
+  else if(dx<-80) go(-1);
+  else{card.style.transform='';hl.style.opacity=0;hr.style.opacity=0;}
+});
+
+render();
+</script>
+</body>
+</html>
