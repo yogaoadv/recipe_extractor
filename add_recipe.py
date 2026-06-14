@@ -144,7 +144,7 @@ Check the description first, then comments if description lacks recipe details.
 
 Video Title: {title}
 Description:
-{description[:3000]}{comments_text[:2000]}
+{description[:5000]}{comments_text[:2000]}
 
 Return this exact JSON structure:
 {{
@@ -159,7 +159,8 @@ Return this exact JSON structure:
   "tags": ["pick any that apply: quick, one-pot, vegetarian, breakfast, lunch, dinner, snack"]
 }}
 
-If description lacks recipe details, infer what you can from the title. Keep ingredients and process minimal but accurate."""
+IMPORTANT: For the process field — preserve ALL method steps from the description, do not summarize or drop any step. Format each step as "1. ... 2. ... 3. ..." (one per line with number prefix) even if the source uses bullets or paragraphs. Copy the content of each step exactly, only add the number prefix. Only infer steps if description has NO method at all.
+If description lacks recipe details entirely, infer what you can from the title."""
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
