@@ -6,3 +6,6 @@ graphify-out/*
 __pycache__/*
 
 .claude/*
+
+# flashcard output at root (keep docs/ for GitHub Pages)
+flashcard.html
