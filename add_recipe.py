@@ -12,6 +12,8 @@ import sys
 import re
 import json
 import requests
+import firebase_admin
+from firebase_admin import credentials, firestore as fs
 from dotenv import load_dotenv
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -125,6 +127,37 @@ def fetch_instagram_details(url):
             "Run: python add_recipe.py manual\n"
             "and paste the caption manually."
         )
+
+
+# ── Firestore ─────────────────────────────────────────────────────────────
+
+_fb_app = None
+
+def get_firestore():
+    global _fb_app
+    if _fb_app is None:
+        sa_path = os.getenv("FIREBASE_SERVICE_ACCOUNT", "firebase-service-account.json")
+        cred = credentials.Certificate(sa_path)
+        _fb_app = firebase_admin.initialize_app(cred)
+    return fs.client()
+
+
+def write_to_firestore(recipe, source_url):
+    db = get_firestore()
+    doc_ref = db.collection("recipes").document()
+    doc_ref.set({
+        "recipe_name":  recipe["recipe_name"],
+        "cuisine":      recipe.get("cuisine", "Other"),
+        "time_to_make": recipe.get("time_to_make", ""),
+        "difficulty":   recipe.get("difficulty", "Easy"),
+        "ingredients":  recipe.get("ingredients", []),
+        "process":      recipe.get("process", ""),
+        "tags":         recipe.get("tags", []),
+        "source_url":   source_url,
+        "status":       "Want to Try",
+        "created_at":   fs.SERVER_TIMESTAMP,
+    })
+    return doc_ref.id
 
 
 # ── Groq ───────────────────────────────────────────────────────────────────
@@ -305,6 +338,11 @@ def check_env():
     if missing:
         print(f"❌ Missing in .env: {', '.join(missing)}")
         sys.exit(1)
+    sa_path = os.getenv("FIREBASE_SERVICE_ACCOUNT", "firebase-service-account.json")
+    if not os.path.exists(sa_path):
+        print(f"❌ Firebase service account not found: {sa_path}")
+        print(f"   Set FIREBASE_SERVICE_ACCOUNT in .env to your JSON file path.")
+        sys.exit(1)
 
 
 def main():
@@ -354,10 +392,14 @@ def main():
     recipe = extract_recipe_with_groq(title, description, comments or None)
     print(f"   -> {recipe['recipe_name']} | {recipe.get('time_to_make','?')} | {recipe.get('difficulty','?')}")
 
-    print("[3/4] Saving to Notion...")
-    page     = create_notion_recipe(recipe, source_url)
-    page_url = page.get("url", "")
-    print(f"   -> Saved")
+    print("[3/4] Saving to Firestore...")
+    doc_id = write_to_firestore(recipe, source_url)
+    print(f"   -> Saved (id: {doc_id})")
+
+    if os.getenv("NOTION_BACKUP") == "true":
+        print("   -> Syncing to Notion backup...")
+        page = create_notion_recipe(recipe, source_url)
+        print(f"   -> Notion: {page.get('url', '')}")
 
     print("[4/4] Checking pantry...")
     pantry          = get_pantry_items()
@@ -387,7 +429,7 @@ def main():
             print(f"  -> {added} new item(s) added to Pantry")
     else:
         print("\nYou have all ingredients!")
-    print(f"\nLink: {page_url}")
+    print(f"\nFirestore ID: {doc_id}")
 
 
 if __name__ == "__main__":

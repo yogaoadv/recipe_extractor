@@ -101,16 +101,18 @@ html,body{
 .pill.diff-Hard  {color:var(--diff-hard);background:rgba(244,67,54,.1)}
 
 .status-dot{font-size:16px;flex-shrink:0}
-
 .card-arrow{color:var(--muted2);font-size:18px;flex-shrink:0}
 
-/* empty state */
+/* loading / empty */
+#loading{
+  display:flex;align-items:center;justify-content:center;
+  flex:1;color:var(--muted);font-size:14px;gap:10px;
+}
 #empty{
   display:none;flex-direction:column;align-items:center;justify-content:center;
   gap:10px;flex:1;color:var(--muted);text-align:center;padding:40px 0;
 }
 #empty.show{display:flex}
-#empty-icon{font-size:48px}
 </style>
 </head>
 <body>
@@ -127,15 +129,28 @@ html,body{
 
   <div id="filters"></div>
 
+  <div id="loading">Loading recipes…</div>
   <div id="list"></div>
   <div id="empty">
-    <div class="empty-icon">🍽️</div>
+    <div>🍽️</div>
     <div>No recipes found</div>
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
-const R = [{"name": "Anda Malai Korma", "cuisine": "Indian", "time": "45-60 mins", "difficulty": "Medium", "status": "Want to Try", "tags": ["dinner", "lunch", "vegetarian"], "slug": "anda-malai-korma"}, {"name": "Chana Masala", "cuisine": "Indian", "time": "55-65 minutes", "difficulty": "Medium", "status": "Want to Try", "tags": ["vegetarian", "dinner", "lunch", "Indian"], "slug": "chana-masala"}, {"name": "Chatpata Bhindi Aloo", "cuisine": "Indian", "time": "25-35 minutes", "difficulty": "Easy", "status": "Want to Try", "tags": ["quick", "vegetarian", "lunch", "dinner"], "slug": "chatpata-bhindi-aloo"}, {"name": "Egg Curry", "cuisine": "Indian", "time": "55-60 minutes", "difficulty": "Medium", "status": "Want to Try", "tags": ["quick", "dinner", "lunch", "Indian"], "slug": "egg-curry"}, {"name": "Egg Pulao", "cuisine": "Indian", "time": "50 minutes", "difficulty": "Easy", "status": "Want to Try", "tags": ["quick", "one-pot", "lunch", "dinner"], "slug": "egg-pulao"}, {"name": "Mushroom Butter Masala", "cuisine": "Indian", "time": "45-50 minutes", "difficulty": "Medium", "status": "Want to Try", "tags": ["quick", "vegetarian", "dinner"], "slug": "mushroom-butter-masala"}];
+const firebaseConfig = {
+  apiKey: "AIzaSyA4jOajEdlmM-844tF8N-bvTfFChWFzQ1c",
+  authDomain: "my-recipes-8889b.firebaseapp.com",
+  projectId: "my-recipes-8889b",
+  storageBucket: "my-recipes-8889b.firebasestorage.app",
+  messagingSenderId: "212021142715",
+  appId: "1:212021142715:web:4f59e1e7f4a475d010759e"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 const STATUS_ICON = {
   'Favourite':   '★',
@@ -148,79 +163,95 @@ function esc(s){
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// build cuisine filter list
-const cuisines = ['All', ...new Set(R.map(r=>r.cuisine).filter(Boolean).sort())];
+let R = [];
 let activeFilter = 'All';
 let searchQuery  = '';
 
-const filtersEl     = document.getElementById('filters');
-const listEl        = document.getElementById('list');
-const emptyEl       = document.getElementById('empty');
-const countEl       = document.getElementById('recipe-count');
-const searchEl      = document.getElementById('search');
+const filtersEl = document.getElementById('filters');
+const listEl    = document.getElementById('list');
+const emptyEl   = document.getElementById('empty');
+const countEl   = document.getElementById('recipe-count');
+const searchEl  = document.getElementById('search');
+const loadingEl = document.getElementById('loading');
 
-// render chips
-cuisines.forEach(c=>{
-  const btn = document.createElement('button');
-  btn.className = 'chip' + (c==='All'?' active':'');
-  btn.textContent = c;
-  btn.addEventListener('click',()=>{
-    activeFilter = c;
-    document.querySelectorAll('.chip').forEach(el=>el.classList.remove('active'));
-    btn.classList.add('active');
-    render();
+function buildFilters() {
+  filtersEl.innerHTML = '';
+  const cuisines = ['All', ...new Set(R.map(r=>r.cuisine).filter(Boolean).sort())];
+  cuisines.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (c === 'All' ? ' active' : '');
+    btn.textContent = c;
+    btn.addEventListener('click', () => {
+      activeFilter = c;
+      document.querySelectorAll('.chip').forEach(el => el.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    });
+    filtersEl.appendChild(btn);
   });
-  filtersEl.appendChild(btn);
-});
+}
 
-function filtered(){
+function filtered() {
   const q = searchQuery.toLowerCase();
-  return R.filter(r=>{
-    const matchFilter = activeFilter==='All' || r.cuisine===activeFilter;
+  return R.filter(r => {
+    const matchFilter = activeFilter === 'All' || r.cuisine === activeFilter;
     const matchSearch = !q ||
-      r.name.toLowerCase().includes(q) ||
+      r.recipe_name.toLowerCase().includes(q) ||
       (r.cuisine||'').toLowerCase().includes(q) ||
-      (r.tags||[]).some(t=>t.toLowerCase().includes(q));
+      (r.tags||[]).some(t => t.toLowerCase().includes(q));
     return matchFilter && matchSearch;
   });
 }
 
-function render(){
+function render() {
   const results = filtered();
   listEl.innerHTML = '';
-  emptyEl.classList.toggle('show', results.length===0);
-  countEl.textContent = results.length + ' recipe' + (results.length!==1?'s':'');
+  emptyEl.classList.toggle('show', results.length === 0);
+  countEl.textContent = results.length + ' recipe' + (results.length !== 1 ? 's' : '');
 
-  results.forEach(r=>{
+  results.forEach(r => {
     const a = document.createElement('a');
     a.className = 'recipe-card';
-    a.href = r.slug + '.html';
+    a.href = 'flashcard.html?id=' + encodeURIComponent(r.id);
 
-    const diffClass = r.difficulty ? 'diff-'+r.difficulty : '';
-    const icon = STATUS_ICON[r.status] || '';
+    const diffClass = r.difficulty ? 'diff-' + r.difficulty : '';
+    const icon = STATUS_ICON[r.status] || '○';
 
     a.innerHTML = `
       <div class="card-left">
-        <div class="card-name">${esc(r.name)}</div>
+        <div class="card-name">${esc(r.recipe_name)}</div>
         <div class="card-meta">
-          ${r.cuisine?`<span class="pill cuisine">${esc(r.cuisine)}</span>`:''}
-          ${r.time?`<span class="pill">⏱ ${esc(r.time)}</span>`:''}
-          ${r.difficulty?`<span class="pill ${diffClass}">${esc(r.difficulty)}</span>`:''}
+          ${r.cuisine ? `<span class="pill cuisine">${esc(r.cuisine)}</span>` : ''}
+          ${r.time_to_make ? `<span class="pill">⏱ ${esc(r.time_to_make)}</span>` : ''}
+          ${r.difficulty ? `<span class="pill ${diffClass}">${esc(r.difficulty)}</span>` : ''}
         </div>
       </div>
-      ${icon?`<div class="status-dot" title="${esc(r.status)}">${icon}</div>`:''}
+      ${icon ? `<div class="status-dot" title="${esc(r.status)}">${icon}</div>` : ''}
       <div class="card-arrow">›</div>
     `;
     listEl.appendChild(a);
   });
 }
 
-searchEl.addEventListener('input', e=>{
+async function loadRecipes() {
+  try {
+    const snap = await db.collection('recipes').orderBy('recipe_name').get();
+    R = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    loadingEl.style.display = 'none';
+    buildFilters();
+    render();
+  } catch(e) {
+    loadingEl.textContent = 'Failed to load recipes.';
+    console.error(e);
+  }
+}
+
+searchEl.addEventListener('input', e => {
   searchQuery = e.target.value;
   render();
 });
 
-render();
+loadRecipes();
 </script>
 </body>
 </html>
