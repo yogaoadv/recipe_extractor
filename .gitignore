@@ -8,5 +8,5 @@ __pycache__/*
 .claude/*
 
 # flashcard output at root (keep docs/ for GitHub Pages)
-flashcard.html
+/flashcard.html
 my-recipes-8889b-firebase-adminsdk-fbsvc-7e1cb8d814.json

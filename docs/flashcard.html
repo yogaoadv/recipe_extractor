@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f0f0f">
+<title>Recipe</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f0f0f;
+  --c-intro:#1a1a2e;   --a-intro:#ff9800;
+  --c-section:#111;    --a-section:#555;
+  --c-ing:#0d1f0d;     --a-ing:#4caf50;
+  --c-step:#0d1220;    --a-step:#42a5f5;
+  --c-done:#1a0d2e;    --a-done:#ce93d8;
+  --text:#f0f0f0;      --muted:#777;
+  --prog-bg:#1e1e1e;
+  --radius:22px;
+}
+html,body{height:100%;background:var(--bg);overflow:hidden;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+
+#app{
+  height:100vh;height:100dvh;
+  display:flex;flex-direction:column;
+  padding:max(env(safe-area-inset-top),14px) 16px max(env(safe-area-inset-bottom),16px);
+  gap:10px;
+}
+
+/* progress */
+#prog-row{display:flex;align-items:center;gap:10px;flex-shrink:0}
+#prog-bar{flex:1;height:4px;background:var(--prog-bg);border-radius:2px;overflow:hidden}
+#prog-fill{height:100%;border-radius:2px;transition:width .35s ease,background .35s ease;width:0%}
+#prog-lbl{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* card stage */
+#stage{flex:1;position:relative;min-height:0;overflow:hidden}
+
+.card{
+  position:absolute;inset:0;
+  border-radius:var(--radius);
+  padding:32px 26px;
+  display:flex;flex-direction:column;justify-content:center;gap:18px;
+  overflow:hidden;
+  will-change:transform;
+  transition:transform .12s ease;
+  touch-action:none;
+}
+.card.intro            {background:var(--c-intro)}
+.card.section          {background:var(--c-section);justify-content:flex-end;padding-bottom:36px}
+.card.ingredients_all  {background:var(--c-ing);justify-content:flex-start;overflow-y:auto;padding-top:28px;touch-action:pan-y}
+.card.step             {background:var(--c-step)}
+.card.done             {background:var(--c-done);align-items:center;text-align:center}
+.card.loading          {background:var(--c-section);align-items:center;justify-content:center}
+.card.error            {background:#1a0d0d;align-items:center;justify-content:center;text-align:center;gap:12px}
+
+/* typography */
+.badge{font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;opacity:.65}
+.main{color:var(--text);font-size:clamp(22px,6vw,32px);font-weight:600;line-height:1.35}
+.sub {color:var(--muted);font-size:14px;line-height:1.6}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{background:rgba(255,255,255,.07);border-radius:20px;padding:5px 14px;font-size:13px;color:var(--text)}
+.step-num{font-size:72px;font-weight:800;line-height:1;opacity:.18}
+.done-icon{font-size:72px}
+.section-label{color:var(--text);font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.4}
+.section-count{color:var(--text);font-size:clamp(42px,11vw,64px);font-weight:800;line-height:1;opacity:.15}
+
+/* swipe overlays */
+.hint{
+  position:absolute;top:50%;transform:translateY(-50%);
+  font-size:52px;font-weight:900;opacity:0;pointer-events:none;
+  border-radius:14px;padding:6px 14px;transition:opacity .08s;
+}
+.hint.l{left:18px;color:#ef5350}
+.hint.r{right:18px;color:#66bb6a}
+
+/* nav buttons */
+#nav{display:flex;gap:10px;flex-shrink:0}
+.btn{flex:1;height:54px;border:none;border-radius:16px;
+  font-size:16px;font-weight:700;cursor:pointer;
+  transition:transform .1s,opacity .1s}
+.btn:active{transform:scale(.96)}
+.btn.back{background:#1a1a1a;color:var(--muted)}
+.btn.next{background:#4caf50;color:#fff}
+.btn:disabled{opacity:.3;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="prog-row">
+    <div id="prog-bar"><div id="prog-fill"></div></div>
+    <div id="prog-lbl">— / —</div>
+  </div>
+  <div id="stage">
+    <div class="card loading" id="card">
+      <div id="cc" style="color:var(--muted);font-size:14px">Loading…</div>
+      <div class="hint l" id="hl">&#8617;</div>
+      <div class="hint r" id="hr">&#10003;</div>
+    </div>
+  </div>
+  <div id="nav">
+    <button class="btn back" id="bb">&#8592; Back</button>
+    <button class="btn next" id="bn" disabled>Next &#8594;</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyA4jOajEdlmM-844tF8N-bvTfFChWFzQ1c",
+  authDomain: "my-recipes-8889b.firebaseapp.com",
+  projectId: "my-recipes-8889b",
+  storageBucket: "my-recipes-8889b.firebasestorage.app",
+  messagingSenderId: "212021142715",
+  appId: "1:212021142715:web:4f59e1e7f4a475d010759e"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ── card building ──────────────────────────────────────────────────────────
+
+function parseSteps(text) {
+  const cards = [];
+  let currentNum = null;
+  let currentLines = [];
+  for (const raw of (text || '').split('\n')) {
+    const line = raw.trim();
+    const m = line.match(/^(\d+)[.)]\s*(.*)/);
+    if (m) {
+      if (currentNum !== null) {
+        cards.push({type:'step', step:currentNum, text:currentLines.join(' ').trim()});
+      }
+      currentNum = parseInt(m[1]);
+      currentLines = m[2] ? [m[2]] : [];
+    } else if (currentNum !== null && line) {
+      currentLines.push(line);
+    }
+  }
+  if (currentNum !== null) {
+    cards.push({type:'step', step:currentNum, text:currentLines.join(' ').trim()});
+  }
+  return cards;
+}
+
+function buildCards(recipe) {
+  const cards = [];
+
+  cards.push({
+    type: 'intro',
+    recipe_name: recipe.recipe_name,
+    cuisine:     recipe.cuisine     || '',
+    time:        recipe.time_to_make|| '',
+    difficulty:  recipe.difficulty  || '',
+    source_url:  recipe.source_url  || '',
+  });
+
+  if (recipe.ingredients && recipe.ingredients.length > 0) {
+    const items = recipe.ingredients.map(ing => ({
+      group: (ing.group || 'INGREDIENTS').toUpperCase(),
+      text:  [ing.quantity, ing.name].filter(Boolean).join(' ').trim(),
+    }));
+    cards.push({type:'ingredients_all', items});
+  }
+
+  const steps = parseSteps(recipe.process);
+  if (steps.length > 0) {
+    cards.push({type:'section', label:'METHOD', count:steps.length});
+    cards.push(...steps);
+  }
+
+  cards.push({type:'done', recipe_name:recipe.recipe_name});
+  return cards;
+}
+
+// ── renderer ───────────────────────────────────────────────────────────────
+
+let C = [];
+let i = 0;
+
+const card  = document.getElementById('card');
+const cc    = document.getElementById('cc');
+const fill  = document.getElementById('prog-fill');
+const lbl   = document.getElementById('prog-lbl');
+const hl    = document.getElementById('hl');
+const hr    = document.getElementById('hr');
+const bb    = document.getElementById('bb');
+const bn    = document.getElementById('bn');
+
+const ACCENT = {
+  intro:'var(--a-intro)', section:'var(--a-section)',
+  ingredients_all:'var(--a-ing)', ingredient:'var(--a-ing)',
+  step:'var(--a-step)', done:'var(--a-done)',
+};
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function render() {
+  const c = C[i];
+  const ac = ACCENT[c.type] || '#fff';
+  fill.style.width = ((i+1)/C.length*100)+'%';
+  fill.style.background = ac;
+  lbl.textContent = (i+1)+' / '+C.length;
+  card.className = 'card '+c.type;
+  card.style.transform = '';
+  hl.style.opacity = 0; hr.style.opacity = 0;
+  bb.disabled = (i === 0);
+  bn.disabled = false;
+  bn.textContent = i === C.length-1 ? 'Done ✔' : 'Next →';
+
+  let h = '';
+  if (c.type === 'intro') {
+    h = `<div class="badge" style="color:${ac}">Recipe</div>
+         <div class="main">${esc(c.recipe_name)}</div>
+         <div class="pills">
+           ${c.cuisine    ? `<span class="pill">${esc(c.cuisine)}</span>`        : ''}
+           ${c.time       ? `<span class="pill">⏱ ${esc(c.time)}</span>`        : ''}
+           ${c.difficulty ? `<span class="pill">${esc(c.difficulty)}</span>`     : ''}
+         </div>
+         <div class="sub">Swipe right or tap Next to start</div>
+         ${c.source_url ? `<a href="${esc(c.source_url)}" target="_blank" rel="noopener" style="color:var(--a-intro);font-size:13px;opacity:.7;text-decoration:none">▶ Watch video</a>` : ''}`;
+  } else if (c.type === 'ingredients_all') {
+    const groups = {};
+    c.items.forEach(it => { (groups[it.group] = groups[it.group]||[]).push(it.text); });
+    const rows = Object.entries(groups).map(([g,items]) => `
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.8px;color:var(--a-ing);opacity:.8;margin-top:14px;margin-bottom:6px">${esc(g)}</div>
+      ${items.map(t=>`<div style="font-size:17px;font-weight:500;color:var(--text);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">${esc(t)}</div>`).join('')}
+    `).join('');
+    h = `<div style="font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;opacity:.65;color:var(--a-ing)">Ingredients</div>${rows}`;
+  } else if (c.type === 'section') {
+    h = `<div class="section-count">${esc(c.count)}</div>
+         <div class="section-label">${esc(c.label)}</div>`;
+  } else if (c.type === 'step') {
+    h = `<div class="step-num" style="color:${ac}">${esc(c.step)}</div>
+         <div class="main">${esc(c.text)}</div>`;
+  } else if (c.type === 'done') {
+    h = `<div class="done-icon">🎉</div>
+         <div class="main">${esc(c.recipe_name)}</div>
+         <div class="sub">Enjoy your meal!</div>
+         <a href="index.html" style="color:var(--a-done);font-size:13px;opacity:.7;text-decoration:none;margin-top:8px">← Back to recipes</a>`;
+  }
+  cc.innerHTML = h;
+}
+
+function go(dir) {
+  const n = i + dir;
+  if (n < 0 || n >= C.length) return;
+  i = n; render();
+}
+
+bn.addEventListener('click', () => go(1));
+bb.addEventListener('click', () => {
+  if (i === 0) { window.location.href = 'index.html'; } else { go(-1); }
+});
+
+// swipe
+let sx, sy, dragging = false;
+card.addEventListener('touchstart', e => {
+  sx = e.touches[0].clientX; sy = e.touches[0].clientY; dragging = true;
+}, {passive:true});
+card.addEventListener('touchmove', e => {
+  if (!dragging) return;
+  const dx = e.touches[0].clientX - sx;
+  const dy = e.touches[0].clientY - sy;
+  if (Math.abs(dy) > Math.abs(dx)*1.4) { dragging=false; return; }
+  e.preventDefault();
+  const rot = dx/18;
+  card.style.transition = 'none';
+  card.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
+  const r = Math.min(Math.abs(dx)/100, 1);
+  hr.style.opacity = dx>0 ? r : 0;
+  hl.style.opacity = dx<0 ? r : 0;
+}, {passive:false});
+card.addEventListener('touchend', e => {
+  if (!dragging) return;
+  dragging = false;
+  card.style.transition = '';
+  const dx = e.changedTouches[0].clientX - sx;
+  if (dx > 80) go(1);
+  else if (dx < -80) go(-1);
+  else { card.style.transform=''; hl.style.opacity=0; hr.style.opacity=0; }
+});
+
+// ── load recipe ────────────────────────────────────────────────────────────
+
+async function loadRecipe() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  if (!id) {
+    card.className = 'card error';
+    cc.innerHTML = '<div style="font-size:32px">⚠️</div><div class="main" style="font-size:20px">No recipe ID</div><a href="index.html" style="color:#f44336;font-size:14px">← Back</a>';
+    return;
+  }
+
+  try {
+    const doc = await db.collection('recipes').doc(id).get();
+    if (!doc.exists) {
+      card.className = 'card error';
+      cc.innerHTML = '<div style="font-size:32px">⚠️</div><div class="main" style="font-size:20px">Recipe not found</div><a href="index.html" style="color:#f44336;font-size:14px">← Back</a>';
+      return;
+    }
+    const recipe = doc.data();
+    document.title = recipe.recipe_name || 'Recipe';
+    C = buildCards(recipe);
+    i = 0;
+    bn.disabled = false;
+    render();
+  } catch(e) {
+    card.className = 'card error';
+    cc.innerHTML = '<div style="font-size:32px">⚠️</div><div class="main" style="font-size:20px">Failed to load</div><div class="sub">'+esc(e.message)+'</div>';
+    console.error(e);
+  }
+}
+
+loadRecipe();
+</script>
+</body>
+</html>
